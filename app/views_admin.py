@@ -51,7 +51,7 @@ def create_user():
             flash("用户名已存在。", "danger")
             return redirect(url_for("admin.create_user"))
 
-        user = User(username=username, is_admin=is_admin)
+        user = User(username=username, is_admin=False)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
