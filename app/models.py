@@ -46,11 +46,32 @@ class Device(db.Model):
 
 
 def init_db() -> None:
-    """创建表，并在第一次启动时创建默认 admin 账号"""
+    """创建表，并确保系统内存在固定的管理员账号。
+
+    当前设计为两个管理员：
+    - admin    ：初始超级管理员，默认密码 admin（部署前务必修改）
+    - wuyuhang ：第二个管理员，默认密码也在这里设置（建议改成你自己的）
+
+    说明：
+    - Web 后台“创建用户”接口只创建普通用户（is_admin=False）。
+    - 如果以后确实需要增加新的管理员账号，建议：
+      1）在本函数中仿照 ensure_admin(...) 再添加一行，或
+      2）写一个单独的管理脚本/命令行，在 app_context 下创建 User(is_admin=True)。
+
+    不建议在 Web 界面随意增加管理员，以避免权限失控。
+    """
     db.create_all()
 
-    if not User.query.filter_by(username="admin").first():
-        admin = User(username="admin", is_admin=True)
-        admin.set_password("admin")  # 初始 admin/admin，尽快登录后修改
-        db.session.add(admin)
-        db.session.commit()
+    def ensure_admin(username: str, password: str) -> None:
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            user = User(username=username, is_admin=True)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+
+    # 超级管理员 1：admin
+    ensure_admin("admin", "admin")  # 部署前请登录后立刻修改密码
+
+    # 超级管理员 2：wuyuhang
+    ensure_admin("wuyuhang", "wuyh12#$")  # 这里写成你想要的初始密码
