@@ -6,6 +6,9 @@ __pycache__/
 *.pyc
 .DS_Store
 
+# datebase
+vpn_control.db
+
 # Sphinx 默认构建目录（我们用 site/）
 site/
 
