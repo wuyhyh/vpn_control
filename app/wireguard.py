@@ -1,9 +1,13 @@
+import os
 import subprocess
 from typing import Tuple
 
-from pathlib import Path
 from .config import Config
 from .models import Device, db
+
+# 服务器端 WireGuard 配置文件路径
+SERVER_BASE_CONF = "/etc/wireguard/wg0-base.conf"
+SERVER_CONF = "/etc/wireguard/wg0.conf"
 
 
 def _get_used_host_numbers() -> set[int]:
@@ -11,7 +15,6 @@ def _get_used_host_numbers() -> set[int]:
     for d in Device.query.all():
         if not d.wg_ip:
             continue
-        # 例如 "10.99.0.101/32"
         ip_part = d.wg_ip.split("/")[0]
         host_str = ip_part.split(".")[-1]
         try:
@@ -35,29 +38,25 @@ def generate_keys() -> Tuple[str, str]:
     生成 WireGuard 私钥/公钥对。
 
     需要系统已安装 `wg` 命令。
-    如果你暂时没装 wg，可以先返回占位字符串。
+    如果失败，则返回占位字符串，方便先跑通整体流程。
     """
     try:
-        # 生成私钥
         priv = (
             subprocess.check_output(["wg", "genkey"], text=True)
             .strip()
         )
-        # 根据私钥生成公钥
         pub = (
             subprocess.check_output(["wg", "pubkey"], input=priv + "\n", text=True)
             .strip()
         )
         return priv, pub
     except Exception:
-        # 占位：方便你先跑通整个系统，然后再换成真实 wg 调用
+        # 占位：方便你先调试其他逻辑
         return "CHANGE_ME_PRIVATE_KEY", "CHANGE_ME_PUBLIC_KEY"
 
 
 def build_client_config(device: Device) -> str:
     """根据 Device 生成客户端配置文本"""
-    from .config import Config  # 避免循环导入
-
     return f"""[Interface]
 Address = {device.wg_ip}
 PrivateKey = {device.wg_private_key}
@@ -71,42 +70,36 @@ PersistentKeepalive = 25
 """
 
 
-def render_peers_config() -> str:
-    """把所有未吊销设备渲染成 [Peer] 段文本"""
-    peers = []
-    devices = Device.query.filter_by(revoked=False).all()
-    for d in devices:
-        peers.append(
-            f"""[Peer]
-PublicKey = {d.wg_public_key}
-AllowedIPs = {d.wg_ip}
-"""
-        )
-    return "\n".join(peers)
-
-
 def apply_server_config() -> None:
     """
-    用 base 配置 + 所有设备 Peer 重建 /etc/wireguard/wg0.conf，
-    然后重启 wg0 接口。
-
-    简单起见：直接 wg-quick down/up。
-    小团队实验环境可以接受短暂中断。
+    根据数据库中的设备列表生成 /etc/wireguard/wg0.conf，
+    然后重启 wg0 接口，使配置生效。
     """
-    base_path = Path(Config.WG_SERVER_BASE_CONF)
-    conf_path = Path(Config.WG_SERVER_CONF)
+    if not os.path.exists(SERVER_BASE_CONF):
+        raise RuntimeError(f"服务器基础配置 {SERVER_BASE_CONF} 不存在")
 
-    base_text = base_path.read_text().strip()
-    peers_text = render_peers_config()
+    # 1) 读基础配置
+    with open(SERVER_BASE_CONF, "r") as f:
+        base = f.read().rstrip() + "\n\n"
 
-    full = base_text + "\n\n" + peers_text + "\n"
+    # 2) 拼接所有设备的 [Peer] 段（只包含未撤销的设备）
+    peers_lines: list[str] = []
+    devices = Device.query.filter_by(revoked=False).all()
 
-    tmp_path = conf_path.with_suffix(".conf.tmp")
-    tmp_path.write_text(full)
+    for d in devices:
+        peers_lines.append("[Peer]")
+        peers_lines.append(f"PublicKey = {d.wg_public_key}")
+        peers_lines.append(f"AllowedIPs = {d.wg_ip}")
+        peers_lines.append("")
 
-    # 覆盖正式配置
-    tmp_path.replace(conf_path)
+    content = base + "\n".join(peers_lines) + "\n"
 
-    # 重启 wg0
+    # 3) 写入 wg0.conf
+    with open(SERVER_CONF, "w") as f:
+        f.write(content)
+    os.chmod(SERVER_CONF, 0o600)
+
+    # 4) 重启 wg0 接口（简单粗暴版本）
+    #    如果 wg0 还没 up，down 会失败但我们忽略它
     subprocess.run(["wg-quick", "down", "wg0"], check=False)
     subprocess.run(["wg-quick", "up", "wg0"], check=True)

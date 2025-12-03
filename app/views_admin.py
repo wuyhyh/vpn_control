@@ -5,6 +5,7 @@ from flask import (
     redirect,
     url_for,
     flash,
+    abort,
 )
 
 from .models import db, User, Device
@@ -134,8 +135,11 @@ def create_device(user_id: int):
         db.session.add(device)
         db.session.commit()
 
-        # 更新服务器端 wg0.conf 并重启接口
-        wireguard.apply_server_config()
+        # 同步到 WireGuard 服务器
+        try:
+            wireguard.apply_server_config()
+        except Exception as e:
+            flash(f"设备已创建，但同步 WireGuard 配置失败：{e}", "danger")
 
         config_text = wireguard.build_client_config(device)
 
@@ -148,3 +152,25 @@ def create_device(user_id: int):
         )
 
     return render_template("admin/create_device.html", user=user)
+
+
+@bp.route("/users/<int:user_id>/devices/<int:device_id>/delete", methods=["POST"])
+@login_required
+def delete_device(user_id: int, device_id: int):
+    user = User.query.get_or_404(user_id)
+    device = Device.query.get_or_404(device_id)
+
+    if device.user_id != user.id:
+        abort(404)
+
+    db.session.delete(device)
+    db.session.commit()
+
+    try:
+        wireguard.apply_server_config()
+    except Exception as e:
+        flash(f"设备已从数据库删除，但同步 WireGuard 配置失败：{e}", "danger")
+    else:
+        flash("设备已删除并同步到 WireGuard。", "success")
+
+    return redirect(url_for("admin.devices", user_id=user.id))
