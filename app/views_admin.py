@@ -15,6 +15,24 @@ from . import wireguard
 bp = Blueprint("admin", __name__)
 
 
+@bp.route("/users/<int:user_id>/devices/<int:device_id>/config")
+@login_required
+def show_device_config(user_id: int, device_id: int):
+    user = User.query.get_or_404(user_id)
+    device = Device.query.get_or_404(device_id)
+
+    if device.user_id != user.id:
+        abort(404)
+
+    config_text = wireguard.build_client_config(device)
+    return render_template(
+        "admin/device_config.html",
+        user=user,
+        device=device,
+        config_text=config_text,
+    )
+
+
 @bp.route("/")
 @login_required
 def dashboard():

@@ -27,6 +27,11 @@
         <td>{{ d.created_at }}</td>
         <td>{{ "已吊销" if d.revoked else "正常" }}</td>
         <td>
+            <a class="btn btn-sm btn-primary me-1"
+               href="{{ url_for('admin.show_device_config', user_id=user.id, device_id=d.id) }}">
+                查看配置
+            </a>
+
             <form method="post"
                   action="{{ url_for('admin.delete_device', user_id=user.id, device_id=d.id) }}"
                   style="display:inline-block"
