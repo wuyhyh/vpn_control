@@ -62,6 +62,22 @@ def create_user():
     return render_template("admin/create_user.html")
 
 
+@bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@login_required
+def delete_user(user_id: int):
+    user = User.query.get_or_404(user_id)
+
+    # 不允许删除管理员账号（尤其是自己）
+    if user.is_admin:
+        flash("不能删除管理员账号。", "danger")
+        return redirect(url_for("admin.users"))
+
+    db.session.delete(user)
+    db.session.commit()
+    flash("用户及其设备已删除。", "success")
+    return redirect(url_for("admin.users"))
+
+
 # ---------- 设备管理 ----------
 
 @bp.route("/users/<int:user_id>/devices")

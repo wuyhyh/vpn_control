@@ -24,8 +24,17 @@
         <td>{{ "是" if u.is_admin else "否" }}</td>
         <td>{{ u.created_at }}</td>
         <td>
-            <a class="btn btn-sm btn-primary"
+            <a class="btn btn-sm btn-primary me-1"
                href="{{ url_for('admin.devices', user_id=u.id) }}">设备</a>
+
+            {% if not u.is_admin %}
+            <form method="post"
+                  action="{{ url_for('admin.delete_user', user_id=u.id) }}"
+                  style="display:inline-block"
+                  onsubmit="return confirm('确定要删除该用户以及名下所有设备吗？');">
+                <button class="btn btn-sm btn-danger" type="submit">删除</button>
+            </form>
+            {% endif %}
         </td>
     </tr>
     {% endfor %}

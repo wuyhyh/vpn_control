@@ -15,7 +15,12 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    devices = db.relationship("Device", backref="user", lazy=True)
+    devices = db.relationship(
+        "Device",
+        backref="user",
+        lazy=True,
+        cascade="all, delete-orphan",
+    )
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
