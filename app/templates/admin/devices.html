@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ user.username }} 的设备 - VPN 控制台{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>用户：{{ user.username }} 的设备</h3>
+    <a class="btn btn-success"
+       href="{{ url_for('admin.create_device', user_id=user.id) }}">为该用户创建新设备</a>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>设备名称</th>
+        <th>IP</th>
+        <th>创建时间</th>
+        <th>状态</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for d in devices %}
+    <tr>
+        <td>{{ d.id }}</td>
+        <td>{{ d.name }}</td>
+        <td>{{ d.wg_ip }}</td>
+        <td>{{ d.created_at }}</td>
+        <td>{{ "已吊销" if d.revoked else "正常" }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+<a class="btn btn-secondary" href="{{ url_for('admin.users') }}">返回用户列表</a>
+{% endblock %}

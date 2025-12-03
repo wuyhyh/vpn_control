@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}用户管理 - VPN 控制台{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>用户列表</h3>
+    <a class="btn btn-success" href="{{ url_for('admin.create_user') }}">创建用户</a>
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>用户名</th>
+        <th>管理员</th>
+        <th>创建时间</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for u in users %}
+    <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ "是" if u.is_admin else "否" }}</td>
+        <td>{{ u.created_at }}</td>
+        <td>
+            <a class="btn btn-sm btn-primary"
+               href="{{ url_for('admin.devices', user_id=u.id) }}">设备</a>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
