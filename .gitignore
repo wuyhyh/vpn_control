@@ -1,0 +1,16 @@
+.idea/
+
+# Python venv / 缓存
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Sphinx 默认构建目录（我们用 site/）
+site/
+
+# 忽略 files 目录下的所有文件（包含子目录）
+docs/source/_static/files/**
+
+# 但保留名为 dummy 的文件，不管它是在根目录还是子目录
+!docs/source/_static/files/**/dummy
