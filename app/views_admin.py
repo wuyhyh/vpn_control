@@ -6,31 +6,16 @@ from flask import (
     url_for,
     flash,
     abort,
+    make_response,
 )
+
+import re
 
 from .models import db, User, Device
 from .views_auth import login_required
 from . import wireguard
 
 bp = Blueprint("admin", __name__)
-
-
-@bp.route("/users/<int:user_id>/devices/<int:device_id>/config")
-@login_required
-def show_device_config(user_id: int, device_id: int):
-    user = User.query.get_or_404(user_id)
-    device = Device.query.get_or_404(device_id)
-
-    if device.user_id != user.id:
-        abort(404)
-
-    config_text = wireguard.build_client_config(device)
-    return render_template(
-        "admin/device_config.html",
-        user=user,
-        device=device,
-        config_text=config_text,
-    )
 
 
 @bp.route("/")
@@ -170,6 +155,54 @@ def create_device(user_id: int):
         )
 
     return render_template("admin/create_device.html", user=user)
+
+
+@bp.route("/users/<int:user_id>/devices/<int:device_id>/config")
+@login_required
+def show_device_config(user_id: int, device_id: int):
+    user = User.query.get_or_404(user_id)
+    device = Device.query.get_or_404(device_id)
+
+    if device.user_id != user.id:
+        abort(404)
+
+    config_text = wireguard.build_client_config(device)
+    return render_template(
+        "admin/device_config.html",
+        user=user,
+        device=device,
+        config_text=config_text,
+    )
+
+
+@bp.route("/users/<int:user_id>/devices/<int:device_id>/config/download")
+@login_required
+def download_device_config(user_id: int, device_id: int):
+    user = User.query.get_or_404(user_id)
+    device = Device.query.get_or_404(device_id)
+
+    if device.user_id != user.id:
+        abort(404)
+
+    # 生成配置内容
+    config_text = wireguard.build_client_config(device)
+
+    # 根据“机器 ID”生成文件名：machine-id.client.conf
+    # 这里先用设备名做 machine-id，并且做一层清洗
+    base = re.sub(r"[^A-Za-z0-9_.-]", "_", device.name)
+    if not base:
+        base = f"device-{device.id}"
+    filename = f"{base}.client.conf"
+
+    # 构造下载响应
+    resp = make_response(config_text)
+    resp.headers.set("Content-Type", "text/plain; charset=utf-8")
+    resp.headers.set(
+        "Content-Disposition",
+        "attachment",
+        filename=filename,
+    )
+    return resp
 
 
 @bp.route("/users/<int:user_id>/devices/<int:device_id>/delete", methods=["POST"])

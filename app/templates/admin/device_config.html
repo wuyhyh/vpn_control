@@ -3,12 +3,21 @@
 {% block content %}
 <h3>设备配置</h3>
 <p>用户：{{ user.username }}，设备：{{ device.name }}，IP：{{ device.wg_ip }}</p>
-
-<p>请把下面的配置保存为 <code>client.conf</code> 文件，然后在对应平台的 WireGuard 客户端中导入。</p>
+<p>你可以直接点击“下载配置文件”，浏览器会保存为 <code>machine-id.client.conf</code>；
+    也可以复制下面的文本手工保存。然后在对应平台的 WireGuard 客户端中导入。</p>
 
 <textarea class="form-control" rows="18" readonly>{{ config_text }}</textarea>
 
 <div class="mt-3">
-    <a class="btn btn-secondary" href="{{ url_for('admin.devices', user_id=user.id) }}">返回设备列表</a>
+    <a class="btn btn-success me-2"
+       href="{{ url_for('admin.download_device_config',
+                      user_id=user.id,
+                      device_id=device.id) }}">
+        下载配置文件
+    </a>
+    <a class="btn btn-secondary"
+       href="{{ url_for('admin.devices', user_id=user.id) }}">
+        返回设备列表
+    </a>
 </div>
 {% endblock %}
