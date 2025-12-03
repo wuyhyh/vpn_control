@@ -78,6 +78,29 @@ def delete_user(user_id: int):
     return redirect(url_for("admin.users"))
 
 
+# ---------- 管理员重置任意用户密码 ----------
+@bp.route("/users/<int:user_id>/reset_password", methods=["GET", "POST"])
+@login_required
+def reset_password(user_id: int):
+    user = User.query.get_or_404(user_id)
+
+    if request.method == "POST":
+        new = request.form.get("new_password", "").strip()
+        confirm = request.form.get("confirm_password", "").strip()
+
+        if not new:
+            flash("新密码不能为空。", "danger")
+        elif new != confirm:
+            flash("两次输入的新密码不一致。", "danger")
+        else:
+            user.set_password(new)
+            db.session.commit()
+            flash(f"用户 {user.username} 的密码已重置。", "success")
+            return redirect(url_for("admin.users"))
+
+    return render_template("admin/reset_password.html", user=user)
+
+
 # ---------- 设备管理 ----------
 
 @bp.route("/users/<int:user_id>/devices")

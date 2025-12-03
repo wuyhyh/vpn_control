@@ -27,6 +27,9 @@
             <a class="btn btn-sm btn-primary me-1"
                href="{{ url_for('admin.devices', user_id=u.id) }}">设备</a>
 
+            <a class="btn btn-sm btn-warning me-1"
+               href="{{ url_for('admin.reset_password', user_id=u.id) }}">重置密码</a>
+
             {% if not u.is_admin %}
             <form method="post"
                   action="{{ url_for('admin.delete_user', user_id=u.id) }}"

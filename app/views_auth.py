@@ -11,7 +11,7 @@ from flask import (
     g,
 )
 
-from .models import User
+from .models import User, db
 
 bp = Blueprint("auth", __name__)
 
@@ -59,3 +59,28 @@ def logout():
     session.clear()
     flash("已退出登录。", "info")
     return redirect(url_for("auth.login"))
+
+
+@bp.route("/change_password", methods=["GET", "POST"])
+@login_required
+def change_password():
+    user = g.current_user  # 在 login_required 里塞进去的
+
+    if request.method == "POST":
+        current = request.form.get("current_password", "")
+        new = request.form.get("new_password", "")
+        confirm = request.form.get("confirm_password", "")
+
+        if not user.check_password(current):
+            flash("当前密码错误。", "danger")
+        elif not new:
+            flash("新密码不能为空。", "danger")
+        elif new != confirm:
+            flash("两次输入的新密码不一致。", "danger")
+        else:
+            user.set_password(new)
+            db.session.commit()
+            flash("密码已更新，请记住新密码。", "success")
+            return redirect(url_for("admin.dashboard"))
+
+    return render_template("change_password.html")
