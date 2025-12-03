@@ -15,13 +15,18 @@ class Config:
 
     # WireGuard 相关配置（后面你要改）
     # 服务器 wg0 的公钥：在服务器上 wg genkey / wg pubkey 之后填这里
-    WG_SERVER_PUBLIC_KEY = os.environ.get("WG_SERVER_PUBLIC_KEY", "CHANGE_ME_WG_PUBKEY")
+    WG_SERVER_PUBLIC_KEY = os.environ.get("WG_SERVER_PUBLIC_KEY", "O5hEApTCm7bBdNt/FSXVDeaTPjdmPSdlnXMIctRAwis=")
     # 对外的 Endpoint（可以是公网 IP 或域名）
-    WG_ENDPOINT = os.environ.get("WG_ENDPOINT", "vpn.example.com:51820")
+    # WG_ENDPOINT = os.environ.get("WG_ENDPOINT", "vpn.example.com:51820")
+    WG_ENDPOINT = os.environ.get("WG_ENDPOINT", "192.168.1.6:51820")
     # 客户端使用的 DNS（先指向网关地址，将来你可以搞内部 DNS）
     WG_DNS = os.environ.get("WG_DNS", "10.99.0.1")
     # 客户端路由的网段（先全部导向 10.99.0.0/24）
     WG_ALLOWED_IPS = os.environ.get("WG_ALLOWED_IPS", "10.99.0.0/24")
+
+    # 服务器端配置文件路径
+    WG_SERVER_BASE_CONF = "/etc/wireguard/wg0-base.conf"
+    WG_SERVER_CONF = "/etc/wireguard/wg0.conf"
 
     # IP 地址池：10.99.0.100 - 10.99.0.200
     WG_IP_POOL_BASE = "10.99.0."

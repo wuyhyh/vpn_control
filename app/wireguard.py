@@ -1,6 +1,7 @@
 import subprocess
 from typing import Tuple
 
+from pathlib import Path
 from .config import Config
 from .models import Device, db
 
@@ -68,3 +69,44 @@ Endpoint = {Config.WG_ENDPOINT}
 AllowedIPs = {Config.WG_ALLOWED_IPS}
 PersistentKeepalive = 25
 """
+
+
+def render_peers_config() -> str:
+    """把所有未吊销设备渲染成 [Peer] 段文本"""
+    peers = []
+    devices = Device.query.filter_by(revoked=False).all()
+    for d in devices:
+        peers.append(
+            f"""[Peer]
+PublicKey = {d.wg_public_key}
+AllowedIPs = {d.wg_ip}
+"""
+        )
+    return "\n".join(peers)
+
+
+def apply_server_config() -> None:
+    """
+    用 base 配置 + 所有设备 Peer 重建 /etc/wireguard/wg0.conf，
+    然后重启 wg0 接口。
+
+    简单起见：直接 wg-quick down/up。
+    小团队实验环境可以接受短暂中断。
+    """
+    base_path = Path(Config.WG_SERVER_BASE_CONF)
+    conf_path = Path(Config.WG_SERVER_CONF)
+
+    base_text = base_path.read_text().strip()
+    peers_text = render_peers_config()
+
+    full = base_text + "\n\n" + peers_text + "\n"
+
+    tmp_path = conf_path.with_suffix(".conf.tmp")
+    tmp_path.write_text(full)
+
+    # 覆盖正式配置
+    tmp_path.replace(conf_path)
+
+    # 重启 wg0
+    subprocess.run(["wg-quick", "down", "wg0"], check=False)
+    subprocess.run(["wg-quick", "up", "wg0"], check=True)

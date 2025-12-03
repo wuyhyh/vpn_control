@@ -134,6 +134,9 @@ def create_device(user_id: int):
         db.session.add(device)
         db.session.commit()
 
+        # 更新服务器端 wg0.conf 并重启接口
+        wireguard.apply_server_config()
+
         config_text = wireguard.build_client_config(device)
 
         # 生成后直接展示配置文本，方便复制 / 保存
