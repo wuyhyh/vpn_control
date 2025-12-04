@@ -1,8 +1,0 @@
-{% extends "base.html" %}
-{% block title %}仪表盘 - VPN 控制台{% endblock %}
-{% block content %}
-<h3>仪表盘</h3>
-<p>当前用户数量：{{ user_count }}，设备数量：{{ device_count }}</p>
-
-<a class="btn btn-primary me-2" href="{{ url_for('admin.users') }}">管理用户</a>
-{% endblock %}
