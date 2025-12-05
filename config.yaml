@@ -46,8 +46,8 @@ peers:
 
     # 在 tokamak-3 上生成：wg genkey | tee priv | wg pubkey | tee pub
     # 然后把这两个值贴到下面两个字段里
-    private_key: "REPLACE_WITH_TOKAMAK3_PRIVATE_KEY"
-    public_key:  "REPLACE_WITH_TOKAMAK3_PUBLIC_KEY"
+    private_key: "MGUypxZuPLYOQFsX9fMUU0YnVrNI122AJszY3nq5YEg="
+    public_key:  "VJrvONDfiLp6n/sg9RnUejinsdiX7IfyLb6CPuoJ+U0="
 
     allowed_ips:
       - "10.10.0.3/32"
