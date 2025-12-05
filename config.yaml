@@ -1,52 +1,73 @@
-# config.yaml
+# config.yaml   （多 peer 版本示例）
 
 server:
   name: rocky-home
-  address: "10.10.0.1/24"        # wg0 在虚拟网络中的地址
+  address: "10.10.0.1/24"
   listen_port: 51820
 
-  # 服务器密钥对
   private_key: "mCqcYgkgHiKiTpEYmeT/0qPpEan8V/s38GHHEBdZh3g="
   public_key:  "0Jyo3iwYaHrqPZv5zp0bzexMyRRVYA9V0T+PqE+m0Sw="
 
-  # 服务器在“物理网络”上的对外访问地址（给客户端用）
-  # 注意：这里只是当前家里的情况，IP 变了要手工改，后面再自动化
+  # 当前家里的实际物理 IP
   endpoint_host: "192.168.1.6"
   endpoint_port: 51820
 
-  # 启动 / 停止 wg0 时附加命令（可选）
   post_up:
     - "sysctl -w net.ipv4.ip_forward=1"
   post_down:
     - "sysctl -w net.ipv4.ip_forward=0"
 
-  # 默认客户端通过隧道访问的网段（生成客户端的 AllowedIPs）
-  # 先只允许访问整个虚拟网段，后面需要 NAT 再扩展
+  # 客户端通过隧道访问的网段（客户端配置中的 AllowedIPs）
   client_allowed_ips:
     - "10.10.0.0/24"
 
 
 peers:
+  # 1. Tokamak-1（Windows）—— 已经在用的客户端
   - name: "tokamak-1"
     address: "10.10.0.2/32"
 
-    # tokamak-1 的密钥对
     private_key: "6JZj2U1AcGnKEkg+hBMjIEove8jV0roMF25O/zxWb2M="
     public_key:  "PJVDyfR2OMFgWayruppNwd6KW5M/7iwHafYQKSYw1Eg="
 
-    # 从服务器视角：通过这个 peer 可以到达哪些 IP
-    # 典型 road-warrior 客户端只需要自己的 /32
+    # server 视角：经过 tokamak-1 可以到达的地址
     allowed_ips:
       - "10.10.0.2/32"
 
-    # 客户端端本地的 DNS 设置（生成 client 配置用）
     dns:
       - "1.1.1.1"
 
-    # 让客户端定期发心跳，穿 NAT 用
     persistent_keepalive: 25
 
-    # 可选：覆盖 server.client_allowed_ips
-    # client_allowed_ips:
-    #   - "10.10.0.0/24"
 
+  # 2. Tokamak-3（MacBook）—— 示例：第二个客户端
+  - name: "tokamak-3"
+    address: "10.10.0.3/32"
+
+    # 在 tokamak-3 上生成：wg genkey | tee priv | wg pubkey | tee pub
+    # 然后把这两个值贴到下面两个字段里
+    private_key: "REPLACE_WITH_TOKAMAK3_PRIVATE_KEY"
+    public_key:  "REPLACE_WITH_TOKAMAK3_PUBLIC_KEY"
+
+    allowed_ips:
+      - "10.10.0.3/32"
+
+    dns:
+      - "1.1.1.1"
+    persistent_keepalive: 25
+
+
+  # 3. Tokamak-2（工位 WSL / Ubuntu）—— 示例：第三个客户端
+  - name: "tokamak-2"
+    address: "10.10.0.4/32"
+
+    # 在 tokamak-2 上生成密钥，然后替换
+    private_key: "REPLACE_WITH_TOKAMAK2_PRIVATE_KEY"
+    public_key:  "REPLACE_WITH_TOKAMAK2_PUBLIC_KEY"
+
+    allowed_ips:
+      - "10.10.0.4/32"
+
+    dns:
+      - "1.1.1.1"
+    persistent_keepalive: 25

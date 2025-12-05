@@ -9,3 +9,7 @@ python -m pip install -r requirements.txt
 ```shell
 python -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple/ -r requirements.txt
 ```
+
+```text
+python -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple/ pyyaml
+```
