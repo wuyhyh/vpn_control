@@ -32,7 +32,7 @@ peers:
 
     # server 视角：经过 tokamak-1 可以到达的地址
     allowed_ips:
-      - "10.10.0.2/32"
+      - "10.10.0.2/24"
 
     dns:
       - "1.1.1.1"
@@ -50,7 +50,7 @@ peers:
     public_key:  "VJrvONDfiLp6n/sg9RnUejinsdiX7IfyLb6CPuoJ+U0="
 
     allowed_ips:
-      - "10.10.0.3/32"
+      - "10.10.0.3/24"
 
     dns:
       - "1.1.1.1"
@@ -66,7 +66,7 @@ peers:
     public_key:  "0BsjwfAKkoNSB2ltH/EJW5EByg7GXJize2t5gYW2szs="
 
     allowed_ips:
-      - "10.10.0.4/32"
+      - "10.10.0.4/24"
 
     dns:
       - "1.1.1.1"
