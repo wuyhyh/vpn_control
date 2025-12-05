@@ -62,8 +62,8 @@ peers:
     address: "10.10.0.4/32"
 
     # 在 tokamak-2 上生成密钥，然后替换
-    private_key: "REPLACE_WITH_TOKAMAK2_PRIVATE_KEY"
-    public_key:  "REPLACE_WITH_TOKAMAK2_PUBLIC_KEY"
+    private_key: "oEL/8zOrw2TZA2UnaYd5xmA+oSGIp/lWKL7SvnPImUg="
+    public_key:  "0BsjwfAKkoNSB2ltH/EJW5EByg7GXJize2t5gYW2szs="
 
     allowed_ips:
       - "10.10.0.4/32"
