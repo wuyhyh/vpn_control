@@ -1,0 +1,52 @@
+# config.yaml
+
+server:
+  name: rocky-home
+  address: "10.10.0.1/24"        # wg0 在虚拟网络中的地址
+  listen_port: 51820
+
+  # 服务器密钥对
+  private_key: "mCqcYgkgHiKiTpEYmeT/0qPpEan8V/s38GHHEBdZh3g="
+  public_key:  "0Jyo3iwYaHrqPZv5zp0bzexMyRRVYA9V0T+PqE+m0Sw="
+
+  # 服务器在“物理网络”上的对外访问地址（给客户端用）
+  # 注意：这里只是当前家里的情况，IP 变了要手工改，后面再自动化
+  endpoint_host: "192.168.1.6"
+  endpoint_port: 51820
+
+  # 启动 / 停止 wg0 时附加命令（可选）
+  post_up:
+    - "sysctl -w net.ipv4.ip_forward=1"
+  post_down:
+    - "sysctl -w net.ipv4.ip_forward=0"
+
+  # 默认客户端通过隧道访问的网段（生成客户端的 AllowedIPs）
+  # 先只允许访问整个虚拟网段，后面需要 NAT 再扩展
+  client_allowed_ips:
+    - "10.10.0.0/24"
+
+
+peers:
+  - name: "tokamak-1"
+    address: "10.10.0.2/32"
+
+    # tokamak-1 的密钥对
+    private_key: "6JZj2U1AcGnKEkg+hBMjIEove8jV0roMF25O/zxWb2M="
+    public_key:  "PJVDyfR2OMFgWayruppNwd6KW5M/7iwHafYQKSYw1Eg="
+
+    # 从服务器视角：通过这个 peer 可以到达哪些 IP
+    # 典型 road-warrior 客户端只需要自己的 /32
+    allowed_ips:
+      - "10.10.0.2/32"
+
+    # 客户端端本地的 DNS 设置（生成 client 配置用）
+    dns:
+      - "1.1.1.1"
+
+    # 让客户端定期发心跳，穿 NAT 用
+    persistent_keepalive: 25
+
+    # 可选：覆盖 server.client_allowed_ips
+    # client_allowed_ips:
+    #   - "10.10.0.0/24"
+
